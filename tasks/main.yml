@@ -1,0 +1,27 @@
+---
+# Playbook to install MySQL and Create DB Users
+- name: Install MySQL Packages
+  sudo: yes
+  yum: name={{ item }} state=installed
+  with_items:
+  - mysql
+  - mysql-server
+  - MySQL-python
+
+- name: Start MySQL Service
+  sudo: yes
+  service: name=mysqld state=started enabled=yes
+
+- template: src=/etc/ansible/roles/mysql/templates/mysql_root dest=/home/ansible/.my.cnf
+
+- name: Change MySQL Root Password
+  sudo: yes
+  mysql_user: name=root host=localhost password={{ root_db_pass }}
+
+- name: Create Database
+  sudo: yes
+  mysql_db: name={{ dbname }} state=present
+
+- name: Create Database User
+  sudo: yes
+  mysql_user: name={{ dbuser }} password={{ dbpassword }} priv={{ dbname }}.*:SELECT, UPDATE, DELETE, ALTER, CREATE, INSERT, SELECT, UPDATE host={{ ip_range }} state=present
